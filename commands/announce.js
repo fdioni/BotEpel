@@ -16,8 +16,10 @@ module.exports = {
       prefix +
       'announce [live/premiere] [Link Video Youtube]```';
 
-    if (!message.member.roles.some((r) => roles.live.includes(r.name))) {
-      return message.reply('Waduh, Kamu siapa ya?');
+    if (message.channel.id !== textChannelID.announce) {
+      return message.reply({
+        files: [{ attachment: 'https://i.imgur.com/4YNSGmG.jpg' }],
+      });
     }
     if (args.length !== 2) {
       return message.reply(messages);
@@ -33,13 +35,6 @@ module.exports = {
     );
     const timeFormat = 'Do MMMM YYYY, HH:mm';
     const timeForDB = 'MM DD YYYY, HH:mm';
-    /* const dateSplit = args[0].split('/');
-    const date =
-      dateSplit[1] + '/' + dateSplit[0] + '/' + moment().format('YYYY');
-    const dateTime = Date.parse(`${date} ${args[1]}`);
-    const livestreamDateTime = moment(dateTime)
-      .utcOffset('+07:00')
-      .format(timeFormat); */
     const linkData = args[1].split('/');
     let youtubeId;
     if (linkData[0] !== 'https:' || linkData[3] === '') {
@@ -146,7 +141,7 @@ module.exports = {
       };
       let mention = '';
       if (vData.dataValues.fanName || vData.dataValues.fanName === '') {
-        const roleId = message.guild.roles.find(
+        const roleId = message.guild.roles.cache.find(
           (r) => r.name === vData.dataValues.fanName
         );
         if (roleId) {
@@ -157,9 +152,9 @@ module.exports = {
       } else {
         mention = '@here';
       }
-      const channel = message.guild.channels.get(textChannelID.live);
-      await channel.send(
-        `Hai Halo~ ${mention} people ヾ(＾-＾)ノ \n${
+      const channel = message.guild.channels.cache.get(textChannelID.live);
+      await channel.send({
+        content: `Hai Halo~ ${mention} people ヾ(＾-＾)ノ \n${
           args[0].toLowerCase() === 'live'
             ? `Bakal ada Livestream mendatang lhoooo pada **${videoDateTime.format(
                 timeFormat
@@ -168,8 +163,8 @@ module.exports = {
                 timeFormat
               )} WIB!**\nNonton bareng yuk~!`
         }`,
-        { embed: liveEmbed }
-      );
+        embeds: [liveEmbed],
+      });
       return await message.reply(
         `Informasi ${args[0].toLowerCase()} sudah dikirim ke text channel tujuan.\nJudul ${
           args[0].toLowerCase() === 'live' ? 'Livestream' : 'Video'

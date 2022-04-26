@@ -1,13 +1,13 @@
 const fs = require("fs");
-const Discord = require("discord.js");
+const {Client, Intents, Collection} = require("discord.js");
 const moment = require("moment");
 const Sequelize = require("sequelize");
 const config = require("./config.js");
 const { version } = require("./package.json");
 const database = require("./config/config.json");
 
-const client = new Discord.Client();
-client.commands = new Discord.Collection();
+const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]});
+client.commands = new Collection();
 
 const commandFiles = fs
   .readdirSync("./commands")

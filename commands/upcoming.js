@@ -26,7 +26,7 @@ module.exports = {
                 .format(timeFormat)}`,
             },
           };
-          return message.channel.send({ embed });
+          return message.channel.send({ embeds: [embed] });
         }
         const embed = {
           title: `${
@@ -65,7 +65,7 @@ module.exports = {
               .format(timeFormat)}`,
           },
         };
-        return message.channel.send({ embed });
+        return message.channel.send({ embeds: [embed] });
       } catch (err) {
         message.reply(
           `Ada sesuatu yang salah, tapi itu bukan kamu: ${err.message}`

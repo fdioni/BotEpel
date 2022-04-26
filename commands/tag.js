@@ -69,9 +69,9 @@ module.exports = {
                 lists.length !== 0
                   ? lists.map((list) => list.dataValues.command).join(', ')
                   : '*Tidak ada tags yang ditampilkan*',
-              fields: [{ name: 'Total Tags', value: listRes.count }],
+              fields: [{ name: 'Total Tags', value: listRes.count.toString() }],
             };
-            message.reply('tag list', { embed: listEmbed });
+            message.reply({ content: 'Tag List', embeds: [listEmbed] });
           } catch (err) {
             console.log(err);
             return message.reply(
@@ -103,9 +103,14 @@ module.exports = {
                 result.length !== 0
                   ? result.map((res) => res.dataValues.command).join(', ')
                   : '*Tidak ada hasil yang ditampilkan*',
-              fields: [{ name: 'Total Tags', value: totalRes.count }],
+              fields: [
+                { name: 'Total Tags', value: totalRes.count.toString() },
+              ],
             };
-            return message.channel.send({ embed: resultEmbed });
+            return message.channel.send({
+              content: 'Hasil Pencarian Tag',
+              embeds: [resultEmbed],
+            });
           } catch (err) {
             console.log(err);
             return message.reply(
@@ -194,16 +199,16 @@ module.exports = {
                     name: 'Created At',
                     value: moment(tag.createdAt)
                       .utcOffset('+07:00')
-                      .format(timeFormat),
+                      .format(timeFormat).toString(),
                     inline: true,
                   },
                   {
                     name: 'Times used',
-                    value: tag.count,
+                    value: tag.count.toString(),
                   },
                 ],
               };
-              return message.channel.send({ embed });
+              return message.channel.send({ content: 'Info Tag', embeds: [embed] });
             } else {
               return message.channel.send(
                 'Tidak ada tag `' + args[1] + '` yang ditemukan'

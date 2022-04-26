@@ -8,6 +8,7 @@ module.exports = {
   activity: 'Use ? to start command',
   textChannelID: {
     live: '',
+    announce: ''
   },
   googleApi: '',
 };

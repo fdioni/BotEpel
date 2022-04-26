@@ -1,7 +1,7 @@
 const moment = require('moment');
 const { Op } = require('sequelize');
 const Schedule = require('../models').Schedule;
-const Vtuber = require('../models').Vtuber
+const Vtuber = require('../models').Vtuber;
 const { name, version } = require('../package.json');
 
 module.exports = {
@@ -13,7 +13,7 @@ module.exports = {
 
     const scheduleEmbed = (data, vtuberName, avatar) => {
       const embed = {
-        color: parseInt(data.length !== 0 ? data[0]['vtuber.color'] : ''),
+        color: parseInt(data.length !== 0 ? data[0]['vtuber.color'] : '0x000000'),
         title: vtuberName
           ? `Upcoming stream dari ${vtuberName}`
           : 'Upcoming Stream',
@@ -48,8 +48,9 @@ module.exports = {
             .format(timeFormat)}`,
         },
       };
-      return message.channel.send('List Stream/Premiere yang akan datang: ', {
-        embed: embed,
+      return message.channel.send({
+        content: 'List Stream/Premiere yang akan datang: ',
+        embeds: [embed],
       });
     };
 
