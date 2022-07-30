@@ -1,7 +1,13 @@
+
+const name = "ketawadonk";
+const description = "Epel Ketawa Donk!";
+
+const execute = (message) => {
+  return message.channel.send('*Huhihuhihuhihuhihuhihuhihu~*')
+}
+
 module.exports = {
-  name: 'ketawadonk',
-  description: 'Epel Ketawa Donk!',
-  execute(message){
-      return message.channel.send('*Huhihuhihuhihuhihuhihuhihu~*')
-  }
+  name,
+  description,
+  execute
 };

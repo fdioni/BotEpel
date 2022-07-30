@@ -1,15 +1,16 @@
-const { name, version } = require("../package.json");
+const { name: bot_name, version } = require("../package.json");
+
+const name = "about";
+const description = "About this BOT";
+
+const execute = (message) => {
+  message.channel.send(
+    "```Hello my name is " + bot_name +" v" + version +". At your Service!\nMy master is: seiso-chan (https://github.com/seisochan)\nOriginally coded by Ryuujo```"
+  );
+}
 
 module.exports = {
-  name: "about",
-  description: "About this BOT",
-  execute(message) {
-    message.channel.send(
-      "```Hello my name is " +
-        name +
-        " v" +
-        version +
-        ". At your Service!\nMy master is: seiso-chan (https://github.com/seisochan)\nOriginally coded by Ryuujo```"
-    );
-  }
+  name,
+  description,
+  execute
 };
