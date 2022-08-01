@@ -6,6 +6,10 @@ const config = require("./config.js");
 const { version } = require("./package.json");
 const database = require("./config/config.json");
 
+const announcerRouter = require('./auto-announcer.js');
+
+const express = require('express')
+
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]});
 client.commands = new Collection();
 
@@ -64,3 +68,17 @@ client.on("message", message => {
 });
 
 client.login(config.token);
+
+//express Web Server for Notification
+const app = express()
+
+app.use(bodyParser.text({ type: 'application/atom+xml' }))
+
+app.get('/', async (req, res) => {
+  res.send("BotEpel version: " + version + " is ready and active!")
+})
+
+app.use(announcerRouter);
+
+const port = 3000;
+app.listen(port, () => console.log(`App listening on port ${port}!`))

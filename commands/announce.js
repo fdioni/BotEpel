@@ -1,45 +1,43 @@
 const moment = require('moment');
-const { name, version } = require('../package.json');
+const { name : app_name, version: app_version } = require('../package.json');
 const { roles, textChannelID, prefix } = require('../config.js');
 const { youtube } = require('../config/youtube');
 const Vtuber = require('../models').Vtuber;
 const Schedule = require('../models').Schedule;
 
-module.exports = {
-  name: 'announce',
-  description: 'Announces Upcoming live and premiere immediately',
-  args: true,
-  async execute(message, args) {
-    moment.locale('id');
-    const messages =
-      'Tulis formatnya seperti ini ya:\n> ```' +
-      prefix +
-      'announce [live/premiere] [Link Video Youtube]```';
+const name = "announce";
+const description= 'Announces Upcoming live and premiere immediately';
+
+const execute = async (message, args) =>
+{
+  moment.locale('id');
+    const messages = 'Tulis formatnya seperti ini ya:\n> ```' + prefix +'announce [live/premiere] [Link Video Youtube]```';
 
     if (message.channel.id !== textChannelID.announce) {
       return message.reply({
         files: [{ attachment: 'https://i.imgur.com/4YNSGmG.jpg' }],
       });
     }
+
     if (args.length !== 2) {
       return message.reply(messages);
     }
-    if (
-      args[0].toLowerCase() !== 'live' &&
-      args[0].toLowerCase() !== 'premiere'
-    ) {
+
+    if ( args[0].toLowerCase() !== 'live' && args[0].toLowerCase() !== 'premiere') {
       return message.reply(messages);
     }
-    message.channel.send(
-      'Mohon tunggu, sedang menyiapkan data untuk dikirimkan'
-    );
+
+    message.channel.send('Mohon tunggu, sedang menyiapkan data untuk dikirimkan');
+
     const timeFormat = 'Do MMMM YYYY, HH:mm';
     const timeForDB = 'MM DD YYYY, HH:mm';
     const linkData = args[1].split('/');
     let youtubeId;
+
     if (linkData[0] !== 'https:' || linkData[3] === '') {
       return message.reply(messages);
     }
+
     switch (linkData[2]) {
       case 'www.youtube.com':
         const paramData = linkData[3].split('=');
@@ -51,12 +49,15 @@ module.exports = {
       default:
         return message.reply(messages);
     }
+
     if (youtubeId === undefined) {
       return message.reply(messages);
     }
+
     const exist = await Schedule.findOne({
       where: { youtubeUrl: `https://www.youtube.com/watch?v=${youtubeId}` },
     });
+
     if (exist) {
       return message.reply(
         `Seseorang sudah mengupload ini terlebih dahulu pada ${moment(
@@ -66,13 +67,14 @@ module.exports = {
           .format(timeFormat)}`
       );
     }
+
     try {
       const config = {
         id: youtubeId,
         part: 'snippet,liveStreamingDetails',
-        fields:
-          'pageInfo,items(snippet(title,thumbnails/high/url,channelTitle,channelId),liveStreamingDetails)',
+        fields: 'pageInfo,items(snippet(title,thumbnails/high/url,channelTitle,channelId),liveStreamingDetails)',
       };
+
       const youtubeData = await youtube.videos.list(config);
       const youtubeInfo = youtubeData.data.items[0].snippet;
       const youtubeLive = youtubeData.data.items[0].liveStreamingDetails;
@@ -86,9 +88,11 @@ module.exports = {
           message: `Channel ${youtubeInfo.channelTitle} tidak ada di database kami. Channel ID: ${youtubeInfo.channelId}`,
         };
       }
+
       const videoDateTime = moment(youtubeLive.scheduledStartTime).utcOffset(
         '+07:00'
       );
+
       await Schedule.create({
         title: youtubeInfo.title,
         youtubeUrl: `https://www.youtube.com/watch?v=${youtubeId}`,
@@ -97,6 +101,7 @@ module.exports = {
         type: args[0].toLowerCase(),
         thumbnailUrl: youtubeInfo.thumbnails.high.url,
       });
+
       const liveEmbed = {
         color: parseInt(vData.dataValues.color),
         title: `${vData.dataValues.fullName} akan ${
@@ -134,12 +139,14 @@ module.exports = {
           url: youtubeInfo.thumbnails.high.url,
         },
         footer: {
-          text: `${name} v${version} - This message was created on ${moment()
+          text: `${app_name} v${app_version} - This message was created on ${moment()
             .utcOffset('+07:00')
             .format(timeFormat)}`,
         },
       };
+
       let mention = '';
+
       if (vData.dataValues.fanName || vData.dataValues.fanName === '') {
         const roleId = message.guild.roles.cache.find(
           (r) => r.name === vData.dataValues.fanName
@@ -152,7 +159,9 @@ module.exports = {
       } else {
         mention = '@here';
       }
+
       const channel = message.guild.channels.cache.get(textChannelID.live);
+
       await channel.send({
         content: `Hai Halo~ ${mention} people ヾ(＾-＾)ノ \n${
           args[0].toLowerCase() === 'live'
@@ -165,6 +174,7 @@ module.exports = {
         }`,
         embeds: [liveEmbed],
       });
+
       return await message.reply(
         `Informasi ${args[0].toLowerCase()} sudah dikirim ke text channel tujuan.\nJudul ${
           args[0].toLowerCase() === 'live' ? 'Livestream' : 'Video'
@@ -172,10 +182,18 @@ module.exports = {
           args[0].toLowerCase() === 'live' ? 'Livestream' : 'Premiere'
         }: ${videoDateTime.format(timeFormat)} WIB / GMT+7`
       );
+
     } catch (err) {
+      console.log(err)
       message.reply(
         `Ada sesuatu yang salah, tapi itu bukan kamu: ${err.message}`
       );
     }
-  },
+}
+
+module.exports = {
+  name,
+  description,
+  args: true,
+  execute,
 };
