@@ -5,6 +5,7 @@ const Sequelize = require("sequelize");
 const config = require("./config.js");
 const { version } = require("./package.json");
 const database = require("./config/config.json");
+const bodyParser = require('body-parser');
 
 const announcerRouter = require('./auto-announcer.js');
 
@@ -31,12 +32,12 @@ const sequelize = new Sequelize(
     dialect: database.development.dialect,
     logging: false,
     dialectOptions: {
-      timezone: "etc/GMT+7"
+      timezone: "+07:00"
     }
   }
 );
 
-client.once("ready", () => {
+client.on("ready", () => {
   client.user.setActivity(config.activity);
   sequelize
     .authenticate()
@@ -50,6 +51,12 @@ client.once("ready", () => {
   console.log(
     "My Active Time was at " + moment().format("dddd DD MMMM YYYY HH:mm:ss Z")
   );
+
+  client.channels.cache.get(config.textChannelID.live).send('Hello here!')
+
+  const liveChannel = client.channels.cache.get(config.textChannelID.live);
+
+  module.export = liveChannel;
 });
 
 client.on("message", message => {
@@ -78,7 +85,7 @@ app.get('/', async (req, res) => {
   res.send("BotEpel version: " + version + " is ready and active!")
 })
 
-app.use(announcerRouter);
+app.use('/youtube',announcerRouter);
 
 const port = 3000;
 app.listen(port, () => console.log(`App listening on port ${port}!`))

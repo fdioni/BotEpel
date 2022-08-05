@@ -2,16 +2,16 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const xml2js = require('xml2js')
 const moment = require('moment')
-const request = require('request')
 
-const express = require('express')
+const liveChannel = require('./main.js');
+
 const router = express.Router()
 
-const { name : app_name, version: app_version } = require('../package.json');
-const { roles, textChannelID, prefix } = require('../config.js');
-const { youtube } = require('../config/youtube');
-const Vtuber = require('../models').Vtuber;
-const Schedule = require('../models').Schedule;
+const { name : app_name, version: app_version } = require('./package.json');
+const { roles, textChannelID, prefix } = require('./config.js');
+const { youtube } = require('./config/youtube');
+const Vtuber = require('./models').Vtuber;
+const Schedule = require('./models').Schedule;
 
 const xmlParser = new xml2js.Parser({ explicitArray: false })
 
@@ -20,32 +20,43 @@ router.use(function(req, res, next) {
     next();
 });
 
+router.use(bodyParser.text({ type: 'application/atom+xml' }))
+
 router.get('/video', function (req, res) {
     res.status(200).send(req.query['hub.challenge'])
 })
 
-router.post('/video', async (req, res) => {
+router.post('/video', (req, res) => {
+
+    moment.locale('id');
+    const timeFormat = 'Do MMMM YYYY, HH:mm';
+    const timeForDB = 'MM DD YYYY, HH:mm';
+
     console.log("New Push Notification incoming!")
 
-    xmlParser.parseString(req.body, (error, result) => {
+    xmlParser.parseString(req.body, async(error, result) => {
         if(error) {
             //res.status(422).json({ code: 'xml_parse_error', details: "Something went wrong while parsing the XML", error }) 
             console.log("Something went wrong while parsing the XML" . error)     
         } else {
+            console.log("Success parsing the XML")
             let vid = result.feed.entry
             let publishUpdateDifference = moment.duration(moment(vid.updated).diff(vid.published)).asSeconds()
             let type = (publishUpdateDifference > 300) ? 'updated' : 'published'
 
             const config = {
-                id: vid.videoId,
+                id: "GOwpicCOe6k",
                 part: 'snippet,liveStreamingDetails',
                 fields: 'pageInfo,items(snippet(title,thumbnails/high/url,channelTitle,channelId),liveStreamingDetails)',
             };
-        
+            //const youtubeData = await youtube.videos.list(config);
             const youtubeData = await youtube.videos.list(config);
-
             const youtubeInfo = youtubeData.data.items[0].snippet;
             const youtubeLive = youtubeData.data.items[0].liveStreamingDetails;
+
+            //console.log(youtubeInfo);
+            //console.log(youtubeLive);
+
             const vData = await Vtuber.findOne({
                 where: {
                     channelURL: `https://www.youtube.com/channel/${youtubeInfo.channelId}`,
@@ -69,9 +80,7 @@ router.post('/video', async (req, res) => {
                     },
                     fields: [
                     {
-                        name: `Tanggal & Waktu ${
-                        args[0].toLowerCase() === 'live' ? 'live' : 'premiere'
-                        }`,
+                        name: "Tanggal & Waktu Live:" ,
                         value: `${videoDateTime.format(timeFormat)} UTC+7 / WIB`,
                     },
                     {
@@ -79,9 +88,7 @@ router.post('/video', async (req, res) => {
                         value: `https://www.youtube.com/watch?v=${vid.videoId}`,
                     },
                     {
-                        name: `Judul ${
-                        args[0].toLowerCase() === 'live' ? 'Live' : 'Video'
-                        }`,
+                        name: "Judul Live: ",
                         value: youtubeInfo.title,
                     },
                     ],
@@ -98,7 +105,7 @@ router.post('/video', async (req, res) => {
                 let mention = '';
 
                 if (vData.dataValues.fanName || vData.dataValues.fanName === '') {
-                    const roleId = message.guild.roles.cache.find((r) => r.name === vData.dataValues.fanName);
+                    const roleId = "";
                     if (roleId) {
                         mention = `<@&${roleId.id}>`;
                     } else {
@@ -108,8 +115,12 @@ router.post('/video', async (req, res) => {
                     mention = '@here';
                 }
 
-                const channel = message.guild.channels.cache.get(textChannelID.live);
+                //const channel = message.guild.channels.cache.get(textChannelID.live);
+                //const channel = client.channels.get(textChannelID.live);
 
+                console.log("data:" + textChannelID.live);
+
+                //const sData = await Schedule.findOne({
                 const sData = await Schedule.findOne({
                     where: {
                         youtubeUrl: `https://www.youtube.com/watch?v=${vid.videoId}`,
@@ -117,19 +128,23 @@ router.post('/video', async (req, res) => {
                 });
 
                 if (!sData) {
+                    //await Schedule.create({
                     await Schedule.create({
                         title: youtubeInfo.title,
                         youtubeUrl: `https://www.youtube.com/watch?v=${vid.videoId}`,
                         dateTime: new Date(videoDateTime.format(timeForDB)),
                         vtuberId: vData.dataValues.id,
-                        type: args[0].toLowerCase(),
+                        type: "live",
                         thumbnailUrl: youtubeInfo.thumbnails.high.url,
                     });
                 }
+                
+                //const channel = liveChannel.channels.cache.get(config.textChannelID.live);
 
-                await channel.send({
+                //await channel.send({
+                await liveChannel.send({
                     content: `Hai Halo~ ${mention} people ヾ(＾-＾)ノ \n${
-                    args[0].toLowerCase() === 'live'
+                    "live" === 'live'
                         ? `Bakal ada Livestream mendatang lhoooo pada **${videoDateTime.format(
                             timeFormat
                         )} WIB!**\nDateng yaaa~ UwU`
@@ -142,6 +157,8 @@ router.post('/video', async (req, res) => {
             }
         }
     })
+
+    res.status(200).send(req.query['hub.challenge'])
 })
 
-module.exports = { router };
+module.exports = router ;
