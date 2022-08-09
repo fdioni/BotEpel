@@ -1,5 +1,5 @@
 const fs = require("fs");
-const {Client, Intents, Collection} = require("discord.js");
+const {Client, Intents, Collection, GatewayIntentBits} = require("discord.js");
 const moment = require("moment");
 const Sequelize = require("sequelize");
 const config = require("./config.js");
@@ -52,12 +52,26 @@ client.on("ready", () => {
     "My Active Time was at " + moment().format("dddd DD MMMM YYYY HH:mm:ss Z")
   );
 
-  client.channels.cache.get(config.textChannelID.live).send('Hello here!')
+  //client.channels.cache.get(config.textChannelID.live).send('Hello here!')
 
-  const liveChannel = client.channels.cache.get(config.textChannelID.live);
+  //const liveChannel = client.channels.cache.get(config.textChannelID.live);
 
-  module.export = liveChannel;
+  //module.export = liveChannel;
+
+  client.channels.cache.get(config.textChannelID.live).createWebhook("Some Username",{
+    name: 'Some-username',
+    avatar: 'https://i.imgur.com/AfFp7pu.png',
+  })
+    .then(webhook => console.log(`Created webhook ${webhook}`))
+    .catch(console.error);
 });
+
+client.channels.fetch(config.textChannelID.live).then((value) => {
+
+  console.log(value);
+
+  //value.send('Hello here!');
+}) 
 
 client.on("message", message => {
   if (!message.content.startsWith(config.prefix) || message.author.bot) return;
@@ -72,9 +86,13 @@ client.on("message", message => {
     console.error(error);
     message.reply("There was an error trying to execute that command!");
   }
+
+  module.exports = message;
 });
 
 client.login(config.token);
+
+module.exports = client;
 
 //express Web Server for Notification
 const app = express()

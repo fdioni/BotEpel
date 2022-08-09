@@ -3,7 +3,7 @@ const bodyParser = require('body-parser')
 const xml2js = require('xml2js')
 const moment = require('moment')
 
-const liveChannel = require('./main.js');
+const message = require('./main.js');
 
 const router = express.Router()
 
@@ -139,10 +139,15 @@ router.post('/video', (req, res) => {
                     });
                 }
                 
-                //const channel = liveChannel.channels.cache.get(config.textChannelID.live);
+                //const guild = client.guilds.cache.get('1003013633028132975');
+                //const channel = guild.channels.cache.get(textChannelID.live);
+
+                const channel = message.channels;
+
+                console.log(channel);
 
                 //await channel.send({
-                await liveChannel.send({
+                await channel.send({
                     content: `Hai Halo~ ${mention} people ヾ(＾-＾)ノ \n${
                     "live" === 'live'
                         ? `Bakal ada Livestream mendatang lhoooo pada **${videoDateTime.format(
